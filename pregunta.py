@@ -11,21 +11,31 @@ import datetime as dt
 
 def clean_data():
 
-    df = pd.read_csv("solicitudes_credito.csv", sep=";")
+    df = pd.read_csv("solicitudes_credito.csv", sep=";", index_col=0)
+    df.dropna(inplace=True)
 
-    df.dropna(axis = 0, inplace = True)
-    df.drop_duplicates(inplace = True)
-    df = df.drop('Unnamed: 0', axis = 1)
+    df.sexo = df.sexo.str.lower()
 
-    df[["sexo", "tipo_de_emprendimiento","idea_negocio","barrio","línea_credito"]] = df[["sexo", "tipo_de_emprendimiento","idea_negocio","barrio","línea_credito"]].apply(lambda x: x.astype(str).str.lower())
-    df = df.replace(to_replace = "(_)|(-)", value = " ", regex = True)    
-    df = df.replace(to_replace = "[,$]|(\.00$)", value = "", regex = True)
+    df.tipo_de_emprendimiento = df.tipo_de_emprendimiento.str.lower()
 
-    df.monto_del_credito = df.monto_del_credito.astype(int)
-    df.comuna_ciudadano = df.comuna_ciudadano.astype(float)
+    df.idea_negocio = [str.lower(idea.replace("_", " ").replace("-", " ")) for idea in df.idea_negocio]
 
-    df.fecha_de_beneficio = pd.to_datetime(df.fecha_de_beneficio, infer_datetime_format = True, errors = 'ignore', dayfirst = True)
-    df.fecha_de_beneficio = df.fecha_de_beneficio.dt.strftime("%Y/%m/%d")
-    df.drop_duplicates(inplace = True)
+    df.barrio = [str.lower(barrio).replace("_", " ").replace("-", " ") for barrio in df.barrio]
+
+    df.comuna_ciudadano = df.comuna_ciudadano.astype(int)
+
+    df.estrato = df.estrato.astype(int)
+
+    df["línea_credito"] = [str.lower(linea.strip().replace("-", " ").replace("_", " ").replace(". ", ".")) for linea in
+                           df["línea_credito"]]
+
+    df.fecha_de_beneficio = [dt.strptime(date, "%d/%m/%Y") if bool(re.search(r"\d{1,2}/\d{2}/\d{4}", date))
+                             else dt.strptime(date, "%Y/%m/%d")
+                             for date in df.fecha_de_beneficio]
+
+    df.monto_del_credito = [int(monto.replace("$ ", "").replace(".00", "").replace(",", "")) for monto in
+                            df.monto_del_credito]
+
+    df.drop_duplicates(inplace=True)
 
     return df
