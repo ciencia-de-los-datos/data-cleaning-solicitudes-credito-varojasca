@@ -11,30 +11,36 @@ import datetime as dt
 
 def clean_data():
 
-    df = pd.read_csv("solicitudes_credito.csv", sep=";", index_col=0)
-    df.dropna(inplace=True)
+    df = pd.read_csv("solicitudes_credito.csv", sep=";", )
+    df= df[df.columns[1:]]
+    df.columns.values
 
-    df.sexo = df.sexo.str.lower()
+    df['sexo']= df['sexo'].str.lower() 
 
-    df.tipo_de_emprendimiento = df.tipo_de_emprendimiento.str.lower()
+    df['tipo_de_emprendimiento']= df['tipo_de_emprendimiento'].str.lower()
 
-    df.idea_negocio = [str.lower(idea.replace("_", " ").replace("-", " ")) for idea in df.idea_negocio]
+    df['idea_negocio']= df['idea_negocio'].str.lower()
+    df['idea_negocio']=df['idea_negocio'].str.replace("-","_")
+    df['idea_negocio']=df['idea_negocio'].str.replace("_"," ")
+    df['idea_negocio']=df['idea_negocio'].str.strip()
 
-    df.barrio = [str.lower(barrio).replace("_", " ").replace("-", " ") for barrio in df.barrio]
+    df['barrio']= df['barrio'].str.lower()
+    df['barrio']=df['barrio'].str.replace("-","_")
+    df['barrio']=df['barrio'].str.replace("_"," ")
 
-    df.comuna_ciudadano = df.comuna_ciudadano.astype(int)
+    df['línea_credito']= df['línea_credito'].str.lower()
+    df['línea_credito']=df['línea_credito'].str.replace("-","_")
+    df['línea_credito']=df['línea_credito'].str.replace("_"," ")
+    df['línea_credito']=df['línea_credito'].str.replace(".","")
+    df['línea_credito']=df['línea_credito'].str.strip()
 
-    df.estrato = df.estrato.astype(int)
+    df.fecha_de_beneficio = pd.to_datetime(df.fecha_de_beneficio,dayfirst=True)
 
-    df["línea_credito"] = [str.lower(linea.strip().replace("-", " ").replace("_", " ").replace(". ", ".")) for linea in
-                           df["línea_credito"]]
-
-    df.fecha_de_beneficio = [datetime.strptime(date, "%d/%m/%Y") if bool(re.search(r"\d{1,2}/\d{2}/\d{4}", date))
-                             else datetime.strptime(date, "%Y/%m/%d")
-                             for date in df.fecha_de_beneficio]
-
-    df.monto_del_credito = [int(monto.replace("$ ", "").replace(".00", "").replace(",", "")) for monto in
-                            df.monto_del_credito]
-
+    df['monto_del_credito']=df['monto_del_credito'].str.replace(",","")
+    df['monto_del_credito']=df['monto_del_credito'].str.replace("$","")
+    df['monto_del_credito']=df['monto_del_credito'].str.strip()
+    df['monto_del_credito'] = df['monto_del_credito'].apply(pd.to_numeric, downcast="integer", errors='ignore')
     df.drop_duplicates(inplace=True)
+    df.dropna(inplace=True)
+    
     return df
